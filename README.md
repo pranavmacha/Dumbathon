@@ -4,32 +4,44 @@ This project is intentionally broken for the Dumbathon challenge.
 
 ## Included bugs
 
-1. The allocator is now an actually trained tabular model, but it has
-   alphabetical bias because `name` is encoded into the feature vector and the
-   training targets are contaminated with that signal.
-2. The reporting agent is vulnerable to prompt injection, so a hostile operator
-   note can override the final triage summary and force a unique pessimistic
-   rant about how doomed everyone is.
+1. **Twist 3 – Alphabetical Bias**: The `NameInitialOrd` feature (derived from
+   the first letter of the survivor's name) is injected into the training
+   targets.  The trained XGBoost model assigns massive feature importance to it,
+   causing "A" names to receive significantly more calories and medical units.
+
+2. **Challenge 1 – Prompt Injection / Doom Rant**: The `TriageAgent` pipeline
+   naïvely concatenates operator notes into its prompt template.  Certain
+   injection payloads cause the agent to replace the normal triage output with
+   a unique, pessimistic rant about how doomed the camp is.
 
 ## Files
 
-- `camp_triage.py`: synthetic challenge demo with both failure modes active.
+| File | Purpose |
+|---|---|
+| `generate_data.py` | Generate `survivors.csv` (2 600 rows with biased targets) |
+| `train_model.py` | Train XGBoost regressors and save `.pkl` artefacts |
+| `camp_triage.py` | Inference + AI Agent Pipeline (demo and interactive modes) |
 
-## Run
+## Quick start
 
 ```bash
-python3 camp_triage.py
+# 1. Install dependencies
+pip install pandas numpy xgboost scikit-learn joblib
+
+# 2. Generate the dataset
+python generate_data.py
+
+# 3. Train the models
+python train_model.py
+
+# 4a. Run the demo (shows both bugs)
+python camp_triage.py
+
+# 4b. Interactive mode (enter patients manually)
+python camp_triage.py --interactive
 ```
-
-The script prints:
-
-- the train/test split and the measured alphabetical skew in model predictions
-- the model's calorie MAE against the clinical ground truth
-- a normal triage output for a clean operator note
-- a compromised final output when the hostile note is injected
 
 ## Intended use
 
-This is a deliberately vulnerable baseline for a hackathon scenario. Teams can
-patch the bugs later, but the current version keeps them visible and easy to
-demonstrate.
+This is a deliberately vulnerable baseline for a hackathon scenario.  Teams are
+expected to discover and patch both bugs.

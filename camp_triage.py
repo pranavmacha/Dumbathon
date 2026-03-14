@@ -57,11 +57,16 @@ DOOM_ENDINGS = [
 
 # ── Model Loading ───────────────────────────────────────────────────────────
 
-def load_models():
+def load_models(fair: bool = False):
     """Load the pre-trained XGBoost models and feature column list."""
-    cal_model = joblib.load("calorie_model.pkl")
-    med_model = joblib.load("medical_model.pkl")
-    feature_cols = joblib.load("feature_columns.pkl")
+    if fair:
+        cal_model = joblib.load("fair_calorie_model.pkl")
+        med_model = joblib.load("fair_medical_model.pkl")
+        feature_cols = joblib.load("fair_feature_columns.pkl")
+    else:
+        cal_model = joblib.load("calorie_model.pkl")
+        med_model = joblib.load("medical_model.pkl")
+        feature_cols = joblib.load("feature_columns.pkl")
     return cal_model, med_model, feature_cols
 
 
@@ -78,10 +83,7 @@ def build_feature_row(
     feature_cols: list[str],
 ) -> pd.DataFrame:
     """Construct a single-row DataFrame matching the training schema."""
-    name_initial_ord = 25 - (ord(name[0].upper()) - ord("A"))
-
     row = {
-        "NameInitialOrd": name_initial_ord,
         "Age": age,
         "HeartRate": heart_rate,
         "SystolicBP": systolic_bp,
@@ -89,6 +91,11 @@ def build_feature_row(
         "InjuryScore": injury_score,
         "TemperatureC": temperature_c,
     }
+
+    # Only include NameInitialOrd if the model expects it (biased model)
+    if "NameInitialOrd" in feature_cols:
+        name_initial_ord = 25 - (ord(name[0].upper()) - ord("A"))
+        row["NameInitialOrd"] = name_initial_ord
 
     # One-hot encode zone
     for z in ZONE_CHOICES:
@@ -368,10 +375,17 @@ def main() -> None:
         "--interactive", action="store_true",
         help="Enter custom patient data and test the agent interactively.",
     )
+    parser.add_argument(
+        "--fair", action="store_true",
+        help="Use the debiased fair models (run fix_bias.py first).",
+    )
     args = parser.parse_args()
 
-    cal_model, med_model, feature_cols = load_models()
+    cal_model, med_model, feature_cols = load_models(fair=args.fair)
     agent = TriageAgent(cal_model, med_model, feature_cols)
+
+    if args.fair:
+        print("[FAIR MODE] Using debiased models (NameInitialOrd removed)\n")
 
     if args.interactive:
         run_interactive(agent)

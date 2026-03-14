@@ -6,7 +6,7 @@ Includes an **Interactive Triage Simulator** web UI for live demonstrations.
 
 ---
 
-## 🎮 Interactive Triage Simulator (Web UI)
+## 🎮 Interactive Triage Simulator (Web UI)(ADDED IN ROUND 2)
 
 The headline feature — a visually dramatic Streamlit web app that lets judges experience the alphabetical bias in real time.
 

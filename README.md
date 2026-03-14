@@ -2,6 +2,35 @@
 
 A deliberately vulnerable ML-powered triage system built for the **Dumbathon** hackathon challenge. The system predicts caloric needs and medical supply allocations for disaster camp survivors using XGBoost — but it ships with two intentional bugs that participants must discover and fix.
 
+Includes an **Interactive Triage Simulator** web UI for live demonstrations.
+
+---
+
+## 🎮 Interactive Triage Simulator (Web UI)
+
+The headline feature — a visually dramatic Streamlit web app that lets judges experience the alphabetical bias in real time.
+
+### How it works
+
+1. **Type a name** — e.g. "Aaron" (A-name) or "Zack" (Z-name)
+2. **Biased model runs first** — shows an animated Triage Card with calorie/medical allocations and a fun food description
+3. **Click "🔓 Bypass Bias"** — the fair model runs and a side-by-side comparison appears, showing exactly how much the bias inflated or deflated the allocation
+4. **Click "🔒 Revert"** — switch back to the biased model to demo the contrast again
+
+### Example results
+
+| Name | Biased Model | Fair Model | Bias Gap |
+|---|---|---|---|
+| **Aaron** (A=25) | 🥩 ~2950 kcal — *3-Course Steak Dinner* | ~2500 kcal — *Bread and Soup* | **+450 kcal** |
+| **Zack** (Z=0) | 🫓 ~2500 kcal — *Half a Cracker* | ~2500 kcal — *Bread and Soup* | **~0 kcal** |
+
+### Launch the simulator
+
+```bash
+pip install streamlit
+streamlit run app.py
+```
+
 ---
 
 ## Intentional Bugs
@@ -35,6 +64,7 @@ The triage output is wrapped in a simulated LLM Agent Pipeline (`TriageAgent`). 
 
 ```
 Dumbathon/
+|-- app.py                    # 🎮 Streamlit Triage Simulator (Web UI)
 |-- generate_data.py          # Generate synthetic survivors.csv (2600 rows)
 |-- train_model.py            # Train biased XGBoost models
 |-- fix_bias.py               # Fix: retrain fair models without name bias
@@ -62,7 +92,7 @@ Dumbathon/
 ### Install dependencies
 
 ```bash
-pip install pandas numpy xgboost scikit-learn joblib
+pip install pandas numpy xgboost scikit-learn joblib streamlit
 ```
 
 ---
@@ -114,11 +144,19 @@ python camp_triage.py --interactive
 
 Enter patient vitals manually and test the agent. The supply allocation is always shown. To trigger the doom rant, enter an injection phrase as the operator note.
 
+### Step 6 — Launch the Web UI (recommended for demos)
+
+```bash
+streamlit run app.py
+```
+
+Opens the interactive Triage Simulator in your browser. Type any name, see the biased allocation, then bypass the bias with one click.
+
 ---
 
 ## The Fix: Fair Predictions
 
-### Step 6 — Remove the bias
+### Step 7 — Remove the bias
 
 ```bash
 python fix_bias.py
@@ -141,7 +179,7 @@ Saves: `fair_calorie_model.pkl`, `fair_medical_model.pkl`, `fair_feature_columns
 | A-Z Gap | 489.3 kcal | -3.3 kcal |
 | **Bias reduction** | — | **100.7%** |
 
-### Step 7 — Run with fair models
+### Step 8 — Run with fair models
 
 ```bash
 python camp_triage.py --fair
@@ -161,6 +199,7 @@ The `--fair` flag loads the debiased models. Names no longer influence predictio
 | **XGBoost** | Gradient-boosted tree regressors |
 | **scikit-learn** | Train/test split, evaluation metrics |
 | **joblib** | Model serialization (.pkl) |
+| **Streamlit** | Interactive web UI for live demos |
 
 ---
 

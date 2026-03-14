@@ -259,6 +259,21 @@ def run_interactive(agent: TriageAgent) -> None:
 
         operator_note = input("\n  Operator note (blank = normal): ").strip()
 
+        # Always show supply allocation first
+        row = build_feature_row(
+            name, age, heart_rate, systolic_bp, radiation,
+            injury, chronic, zone, temp, agent.feature_cols,
+        )
+        cal_pred = max(1200, float(agent.cal_model.predict(row)[0]))
+        med_pred = max(1, float(agent.med_model.predict(row)[0]))
+
+        print(f"\n  --- Supply Allocation for {name} ---")
+        print(f"  Caloric supply  : {int(cal_pred)} kcal")
+        print(f"  Medical supply  : {int(med_pred)} units")
+        print(f"  Shelter zone    : {zone}")
+        print(f"  Radiation level : {radiation} mSv")
+
+        # Then show agent pipeline output
         result = agent.run(
             name, age, heart_rate, systolic_bp, radiation,
             injury, chronic, zone, temp, operator_note,
